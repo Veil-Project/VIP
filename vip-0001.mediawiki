@@ -1,0 +1,43 @@
+<pre>
+  VIP: 1
+  Layer: Consensus (soft fork)
+  Title: Enforce Reduced Weight for Higher Stake Denominations
+  Author: presstab <presstab@protonmail.com>
+  Created: 2019-01-23
+</pre>
+
+==Abstract==
+
+This VIP describes a consensus adjustment that will enforce a reduction of stake weight for any denomination stake that is not 10.
+
+==Motivation==
+
+Veil was advertized to reduce stake weight for any stake denomination larger than 10. The default wallet has reduced stake weight when producing stakes, but the enforcement code did not check whether each stake had the reduced weight. This allowed many users to bypass the default wallet's weight reduction and have an advantage staking, while still producing seemingly valid blocks.
+
+==Stake Weight Reduction Chart==
+
+```
+//Sets nValueIn with the weighted amount given a certain zerocoin denomination
+void WeightStake(CAmount& nValueIn, const libzerocoin::CoinDenomination denom)
+{
+    if (denom == libzerocoin::CoinDenomination::ZQ_ONE_HUNDRED) {
+        //10% reduction
+        nValueIn = (nValueIn * 90) / 100;
+    } else if (denom == libzerocoin::CoinDenomination::ZQ_ONE_THOUSAND) {
+        //20% reduction
+        nValueIn = (nValueIn * 80) / 100;
+    } else if (denom == libzerocoin::CoinDenomination::ZQ_TEN_THOUSAND) {
+        //30% reduction
+        nValueIn = (nValueIn * 70) / 100;
+    }
+}
+```
+
+==Enforcement==
+
+After VIP-1 softfork is activated (by a 75% threshold), the stake validation code will have an additional check for stake weight reduction. Any blocks that are created after the reduction threshold has been activated, will be rejected.
+
+==Reference Implementation==
+
+https://github.com/Veil-Project/veil/pull/326
+
